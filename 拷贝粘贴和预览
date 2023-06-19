@@ -1,0 +1,81 @@
+//拷贝粘贴文件
+menuItem2.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                    	// 获取剪贴板中的内容
+                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                        Transferable contents = clipboard.getContents(null);
+                        if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                            try {
+                                // 获取文件路径
+                                String path = (String) contents.getTransferData(DataFlavor.stringFlavor);
+                                // 粘贴文件
+                                File file = new File(path);
+                                if (file.exists()) {
+                                    // 处理重名文件的情况
+                                    int i = 1;
+                                    String name = file.getName();
+                                    String parent = file.getParent();
+                                    String base = name.substring(0, name.lastIndexOf("."));
+                                    String ext = name.substring(name.lastIndexOf("."));
+                                    while (file.exists()) {
+                                        file = new File(parent, base + "(" + i + ")" + ext);
+                                        i++;
+                                    }
+                                    file.createNewFile();
+                                    area.setText ("已粘贴文件" + file.getName());
+                                    
+//预览
+menuItem3.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                    	File file = (File) list.getSelectedValue();//获取列表点击文件
+                    	if (file != null) {
+                    	    // 判断文件是否为文本文件
+                    	    if (!isTextFile(file)) {
+                    	        JOptionPane.showMessageDialog(null, "该文件不是文本文件，无法预览");
+                    	        return;
+                    	    }
+                    	    // 读取文件的前100行
+                    	   java.util.List<String> lines = readFirst100Lines(file);
+                    	    // 创建一个小窗口，显示文件的前100行
+                    	    showPreview(lines);
+                    	}// 处理按钮3点击事件
+                    }
+                    
+//拷贝粘贴文本文件
+
+private boolean isTextFile(File file) {
+            String fileName = file.getName().toLowerCase();
+            return fileName.endsWith(".txt") || fileName.endsWith(".java") || fileName.endsWith(".ini") || fileName.endsWith(".bat");
+        }
+//读取文本文件
+        private static java.util.List<String> readFirst100Lines(File file) {
+        java.util.List<String> lines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            int count = 0;
+            while ((line = reader.readLine()) != null && count < 100) {
+                lines.add(line);
+                count++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return lines;
+    }
+        //生成文件预览窗口
+        private static void showPreview(java.util.List<String> lines) {
+            // 创建一个文本区域，显示文件的前100行
+            JTextArea textArea = new JTextArea();
+            lines.forEach(textArea::append);
+            // 创建一个滚动窗口，将文本区域添加到其中
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            // 创建一个对话框，将滚动窗口添加到其中，并设置对话框的大小和位置等属性
+            JDialog dialog = new JDialog(frame,"文本预览");
+            dialog.add(scrollPane);
+            dialog.setSize(600, 400);
+            dialog.setLocationRelativeTo(null);
+            dialog.setVisible(true);
+            dialog.setFont(new Font("微软雅黑", Font.PLAIN, 20));
+        }
